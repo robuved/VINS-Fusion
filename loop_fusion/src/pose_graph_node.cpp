@@ -135,6 +135,8 @@ void point_callback(const sensor_msgs::PointCloudConstPtr &point_msg)
     // for visualization
     sensor_msgs::PointCloud point_cloud;
     point_cloud.header = point_msg->header;
+    sensor_msgs::ChannelFloat32 ids;
+
     for (unsigned int i = 0; i < point_msg->points.size(); i++)
     {
         cv::Point3f p_3d;
@@ -147,7 +149,9 @@ void point_callback(const sensor_msgs::PointCloudConstPtr &point_msg)
         p.y = tmp(1);
         p.z = tmp(2);
         point_cloud.points.push_back(p);
+        ids.values.push_back(point_msg->channels[i].values[4]);
     }
+    point_cloud.channels.push_back(ids);
     pub_point_cloud.publish(point_cloud);
 }
 
@@ -155,6 +159,8 @@ void point_callback(const sensor_msgs::PointCloudConstPtr &point_msg)
 void margin_point_callback(const sensor_msgs::PointCloudConstPtr &point_msg)
 {
     sensor_msgs::PointCloud point_cloud;
+    sensor_msgs::ChannelFloat32 ids;
+
     point_cloud.header = point_msg->header;
     for (unsigned int i = 0; i < point_msg->points.size(); i++)
     {
@@ -168,7 +174,9 @@ void margin_point_callback(const sensor_msgs::PointCloudConstPtr &point_msg)
         p.y = tmp(1);
         p.z = tmp(2);
         point_cloud.points.push_back(p);
+        ids.values.push_back(point_msg->channels[i].values[4]);
     }
+    point_cloud.channels.push_back(ids);
     pub_margin_cloud.publish(point_cloud);
 }
 

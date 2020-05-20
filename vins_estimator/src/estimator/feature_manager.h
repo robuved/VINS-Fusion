@@ -63,13 +63,14 @@ class FeaturePerId
   public:
     const int feature_id;
     int start_frame;
+    const double detected_time;
     vector<FeaturePerFrame> feature_per_frame;
     int used_num;
     double estimated_depth;
     int solve_flag; // 0 haven't solve yet; 1 solve succ; 2 solve fail;
 
-    FeaturePerId(int _feature_id, int _start_frame)
-        : feature_id(_feature_id), start_frame(_start_frame),
+    FeaturePerId(int _feature_id, int _start_frame, double _detected_time)
+        : feature_id(_feature_id), start_frame(_start_frame), detected_time(_detected_time),
           used_num(0), estimated_depth(-1.0), solve_flag(0)
     {
     }
@@ -85,7 +86,7 @@ class FeatureManager
     void setRic(Matrix3d _ric[]);
     void clearState();
     int getFeatureCount();
-    bool addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, double td);
+    bool addFeatureCheckParallax(int frame_count, const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image, double time, double td);
     vector<pair<Vector3d, Vector3d>> getCorresponding(int frame_count_l, int frame_count_r);
     //void updateDepth(const VectorXd &x);
     void setDepth(const VectorXd &x);

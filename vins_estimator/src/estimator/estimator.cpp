@@ -327,6 +327,7 @@ void Estimator::processMeasurements()
             pubOdometry(*this, header);
             pubKeyPoses(*this, header);
             pubCameraPose(*this, header);
+            pubWindowOdometry(*this, header);
             pubPointCloud(*this, header);
             pubKeyframe(*this);
             pubTF(*this, header);

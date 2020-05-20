@@ -12,8 +12,9 @@
 using namespace ros;
 using namespace Eigen;
 ros::Publisher pub_odometry, pub_latest_odometry;
+ros::Publisher pub_odometry_window;
 ros::Publisher pub_path;
-ros::Publisher pub_point_cloud, pub_margin_cloud;
+ros::Publisher pub_point_cloud_key, pub_margin_cloud;
 ros::Publisher pub_key_poses;
 ros::Publisher pub_camera_pose;
 ros::Publisher pub_camera_pose_visual;
@@ -36,7 +37,8 @@ void registerPub(ros::NodeHandle &n)
     pub_latest_odometry = n.advertise<nav_msgs::Odometry>("imu_propagate", 1000);
     pub_path = n.advertise<nav_msgs::Path>("path", 1000);
     pub_odometry = n.advertise<nav_msgs::Odometry>("odometry", 1000);
-    pub_point_cloud = n.advertise<sensor_msgs::PointCloud>("point_cloud", 1000);
+    pub_odometry_window = n.advertise<nav_msgs::Odometry>("odometry_window", 1000);
+    pub_point_cloud_key = n.advertise<sensor_msgs::PointCloud>("point_cloud", 1000);
     pub_margin_cloud = n.advertise<sensor_msgs::PointCloud>("margin_cloud", 1000);
     pub_key_poses = n.advertise<visualization_msgs::Marker>("key_poses", 1000);
     pub_camera_pose = n.advertise<nav_msgs::Odometry>("camera_pose", 1000);
@@ -175,6 +177,32 @@ void pubOdometry(const Estimator &estimator, const std_msgs::Header &header)
     }
 }
 
+void pubWindowOdometry(const Estimator &estimator, const std_msgs::Header &header)
+{
+    for (int i = 0; i <= WINDOW_SIZE; i++) {
+        nav_msgs::Odometry odometry;
+        odometry.header.stamp = ros::Time(estimator.Headers[i]);
+        odometry.header.frame_id = "world";
+        odometry.child_frame_id = "world";
+        Quaterniond tmp_Q;
+        tmp_Q = Quaterniond(estimator.Rs[i]);
+        odometry.pose.pose.position.x = estimator.Vs[i].x();
+        odometry.pose.pose.position.y = estimator.Vs[i].y();
+        odometry.pose.pose.position.z = estimator.Vs[i].z();
+        odometry.pose.pose.orientation.x = tmp_Q.x();
+        odometry.pose.pose.orientation.y = tmp_Q.y();
+        odometry.pose.pose.orientation.z = tmp_Q.z();
+        odometry.pose.pose.orientation.w = tmp_Q.w();
+        odometry.twist.twist.linear.x = estimator.Bas[i].x();
+        odometry.twist.twist.linear.y = estimator.Bas[i].y();
+        odometry.twist.twist.linear.z = estimator.Bas[i].z();
+        odometry.twist.twist.angular.x = estimator.Bgs[i].x();
+        odometry.twist.twist.angular.y = estimator.Bgs[i].y();
+        odometry.twist.twist.angular.z = estimator.Bgs[i].z();
+        pub_odometry_window.publish(odometry);
+    }
+}
+
 void pubKeyPoses(const Estimator &estimator, const std_msgs::Header &header)
 {
     if (estimator.key_poses.size() == 0)
@@ -274,7 +302,7 @@ void pubPointCloud(const Estimator &estimator, const std_msgs::Header &header)
         ids.values.push_back(it_per_id.feature_id);
     }
     point_cloud.channels.push_back(ids);
-    pub_point_cloud.publish(point_cloud);
+    pub_point_cloud_key.publish(point_cloud);
 
 
     // pub margined potin
